@@ -11,9 +11,9 @@ A databse project for the fishing industry comprising of the following tables:
 ![fisher table](fishers.png "fisher table")
 
 #### These tables can be joined as shown:
-##### 1. Using station_id as the foreign key
+##### 1. Using station_id 
 ![join1](station_join.png "station join")
-##### 2. Using boat_id as the foeign key
+##### 2. Using boat_id 
 ![join 2](fishowner.png "boat join")
 ![join 2](sowner2.png "boat join")
 
