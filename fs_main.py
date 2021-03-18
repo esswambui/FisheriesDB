@@ -7,7 +7,7 @@ mydb = conn.connect(
     host="localhost",
     user="root",
     password="newlight",
-    database="Fisheries"
+    database="Samaki"
 )
 print("Hi")
 
@@ -15,7 +15,7 @@ print("Hi")
 cursor = mydb.cursor()
 
 # Create Database
-cursor.execute("CREATE DATABASE IF NOT EXISTS Fisheries")
+cursor.execute("CREATE DATABASE IF NOT EXISTS Samaki")
 print("Database created")
 
 # Create station table
@@ -25,42 +25,38 @@ station_name VARCHAR(100) NOT NULL,
 station_address VARCHAR(100))''')
 print("Station table created")
 
-# Create boat table
-cursor.execute('''CREATE TABLE IF NOT EXISTS boat (
-boat_id INT(5) AUTO_INCREMENT PRIMARY KEY NOT NULL UNIQUE,
-boat_name VARCHAR(100) NOT NULL,
-boat_size DECIMAL(3.2),
-boat_length DECIMAL(3.2),
-boat_capacity INT(2),
-station_id INT(3) NOT NULL, 
-fishing BOOLEAN,
-  CONSTRAINT FK_boat_station
-  FOREIGN KEY (station_id)
-        REFERENCES station(station_id)  )''')
-print("Boat table created")
-
 # Create Owner Table
 cursor.execute('''CREATE TABLE IF NOT EXISTS owner (
 owner_id INT(5) AUTO_INCREMENT PRIMARY KEY NOT NULL UNIQUE,
 owner_name VARCHAR(100) NOT NULL,
-boat_id INT(5) NOT NULL UNIQUE,
 phone_number INT(10) NOT NULL,
 email VARCHAR(100) NOT NULL,
-  CONSTRAINT FK_owner_boat
-  FOREIGN KEY (boat_id)
-        REFERENCES boat(boat_id)  )''')
+boat_id INT(5) NOT NULL )''')
 print("Owner table created")
+
+# Create boat table
+cursor.execute('''CREATE TABLE IF NOT EXISTS boat (
+boat_id INT(5) AUTO_INCREMENT PRIMARY KEY NOT NULL UNIQUE,
+boat_name VARCHAR(100) NOT NULL,
+boat_size DECIMAL(3,2),
+boat_length DECIMAL(3,2),
+boat_capacity INT(2),
+station_id INT(3) NOT NULL, 
+fishing BOOLEAN,
+owner_id INT(3) NOT NULL,
+  CONSTRAINT FK_boat_owner  FOREIGN KEY (owner_id)
+        REFERENCES owner(owner_id)  )''')
+print("Boat table created")
 
 # Create Fishers Table
 cursor.execute('''CREATE TABLE IF NOT EXISTS fisher (
 fisher_id INT(5) AUTO_INCREMENT PRIMARY KEY NOT NULL UNIQUE,
 fisher_name VARCHAR(100) NOT NULL,
-boat_id INT(5) NOT NULL UNIQUE,
+boat_id INT(5) NOT NULL,
 phone_number INT(10) NOT NULL,
 email VARCHAR(100) NOT NULL,
 age INT(3) NOT NULL,
-  CONSTRAINT FK_fisher_boat
-  FOREIGN KEY (boat_id)
+  CONSTRAINT FK_fisher_boat FOREIGN KEY (boat_id)
         REFERENCES boat(boat_id)  )''')
 print("Fisher table created")
 
@@ -75,6 +71,17 @@ with open('D:\FisheriesDB\stations.csv', 'r') as stationrec:
         mydb.commit()
 print("Station records added")
 
+#  Insert owner records from csv file
+#
+# Read from csv file
+ownrec = csv.reader(open(r"D:\FisheriesDB\owners.csv", 'r'))
+next(ownrec)  # Skip the first row
+for row in ownrec:
+    cursor.execute(
+        "INSERT IGNORE INTO owner(owner_id, owner_name, phone_number, email, boat_id) VALUES(%s, %s, %s, %s, %s)", row)
+    mydb.commit()
+print("Owner records added")
+
 #  Insert boat records from csv file
 #
 # Read from csv file
@@ -86,20 +93,9 @@ for row in boatrec:
 
     # cursor.execute("set foreign_key_checks=0;") -- Ignores foreugn key constaint
     cursor.execute(
-        "INSERT IGNORE INTO boat(boat_id, boat_name, boat_size, boat_length, boat_capacity, station_id, fishing) VALUES(%s, %s, %s, %s, %s, %s, %s)", row)
+        "INSERT IGNORE INTO boat(boat_id, boat_name, boat_size, boat_length, boat_capacity, station_id, fishing, owner_id) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)", row)
     mydb.commit()
 print("Boat records added")
-
-#  Insert owner records from csv file
-#
-# Read from csv file
-ownrec = csv.reader(open(r"D:\FisheriesDB\owners.csv", 'r'))
-next(ownrec)  # Skip the first row
-for row in ownrec:
-    cursor.execute(
-        "INSERT IGNORE INTO owner(owner_id, owner_name, boat_id, phone_number, email) VALUES(%s, %s, %s, %s, %s)", row)
-    mydb.commit()
-print("Owner records added")
 
 #  Insert fisher records from csv file
 #
@@ -112,8 +108,9 @@ for row in fishrec:
     mydb.commit()
 print("Fisher records added")
 
-
 # function to join station and boat ewcords
+
+
 def boat_station_join():
     cursor.execute(
         "SELECT * FROM boat INNER JOIN station \
@@ -125,6 +122,8 @@ def boat_station_join():
         print(j)
 
 # function to join boat owners and fishe records
+
+
 def boat_owners_fishers_join():
     cursor.execute(
         "SELECT * FROM fisher INNER JOIN boat \
@@ -136,7 +135,7 @@ def boat_owners_fishers_join():
     for j in cursor.fetchall():
         print(j)
 
-        
+
 boat_station_join()
 boat_owners_fishers_join()
 
