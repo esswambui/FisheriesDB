@@ -124,12 +124,7 @@ def boat_station_join():
     for j in cursor.fetchall():
         print(j)
 
-
-boat_station_join()
-
-# function to join boat owne and fishe records
-
-
+# function to join boat owners and fishe records
 def boat_owners_fishers_join():
     cursor.execute(
         "SELECT * FROM fisher INNER JOIN boat \
@@ -141,7 +136,8 @@ def boat_owners_fishers_join():
     for j in cursor.fetchall():
         print(j)
 
-
+        
+boat_station_join()
 boat_owners_fishers_join()
 
 cursor.close()
